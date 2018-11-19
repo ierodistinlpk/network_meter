@@ -1,0 +1,692 @@
+Agent.h
+
+ 
+                        Agent.h.h - Copyright iero
+
+Here you can write a license for your code, some comments or any other
+information you want to have in your generated code. To to this simply
+configure the "headings" directory in uml to point to a directory
+where you have your heading files.
+
+or you can just replace the contents of this file with your own.
+If you want to do this, this file is located at
+
+/usr/share/apps/umbrello/headings/heading.h
+
+-->Code Generators searches for heading files based on the file extension
+   i.e. it will look for a file name ending in ".h" to include in C++ header
+   files, and for a file name ending in ".java" to include in all generated
+   java code.
+   If you name the file "heading.<extension>", Code Generator will always
+   choose this file even if there are other files with the same extension in the
+   directory. If you name the file something else, it must be the only one with that
+   extension in the directory to guarantee that Code Generator will choose it.
+
+you can use variables in your heading files which are replaced at generation
+time. possible variables are : author, date, time, filename and filepath.
+just write %variable_name%
+
+This file was generated on Пнд Мар 23 2009 at 19:52:10
+The original location of this file is /media/s2/univer/diplomko/agent_nix/Agent.h
+**************************************************************************/
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+using namespace std;
+ 
+class Agent
+{
+  private:
+    pthread_mutex_t send_mut;  
+    pthread_t m_r_thread;  
+    pthread_mutex_t m_query_mutex;  
+    pthread_cond_t m_Cond;  
+    unsigned short m_time_to_die;
+   
+    string m_Name;
+   
+    adress_t m_Address;
+    sock m_Soket;  
+    unsigned short m_Port;
+    unsigned long m_next_event;
+    unsigned long m_next_result;
+    unsigned long m_cur_event;
+    unsigned long m_cur_result;
+    timestamp_t last_comm_time;
+    timestamp_t last_request_time;
+    long m_comm_seq;
+    long long m_SessionId;
+   
+    msg_header m_HRBuf;  
+    msg_header m_HSBuf;  
+    unsigned char m_RBuf[DBUF_SIZE];  
+    unsigned char m_SBuf[DBUF_SIZE];  
+     
+     
+    intro_s * pintro;
+    sesstart_s * psesstart;
+    disconnect_s * pdisconnect;
+    getclstate_s * pgetclstate;
+    setprobe_s * psetprobe;
+    dataack_s * pdataack;
+     
+    login_s * plogin;
+    clientstate_s * pclientstate;
+    proberesult_s * pproberesult;
+    eventlog_s * peventlog;
+    cldisconnect_s * pclientdisconnect;
+     
+    list<PostString> m_ResultQuery; 
+   
+    list<NetEvent> m_EventList; 
+   
+    list<Probe*> m_ProbeList; 
+    Pingovator * m_pinger;  
+    
+     
+      
+    int Connect ( );    
+    int Auth();  
+     
+    int StartQuest ( );
+     
+    void SendResult ( );
+    void KillSec();  
+    int SendBuf();  
+public:
+   
+   
+  Agent ( );
+   
+  ~Agent ( );
+   
+   * по завершении возвращает причину выхода.
+   * по завершении стоит убивать агента, чтобы не проболтался.
+   * @param  filename   */
+  int StartWork (string filename);
+  /*добавляет сетевой событие в очередь   */
+  void AddEvent (NetEvent& event );
+   
+  void AddResult (PostString& result );
+   
+   
+  string getName ( )   {    return m_Name;  }
+   
+ 
+  int CickCond();  
+  static void * SecThread (void * pthis );
+};
+
+ 
+
+Cycle.h
+
+
+ 
+ 
+
+ 
+ 
+ 
+  * class Cycle
+  * описание одного цикла посыла пакетов
+  */
+
+class Cycle
+{
+private:
+   
+  idprobe_t m_IdProbe;
+   
+  addr_t m_Target;
+   
+  unsigned short m_Count;
+   
+  unsigned short m_Size;
+  unsigned long m_Number;
+  public:
+   
+    Cycle (idprobe_t idprobe=0, addr_t target=2130706433, unsigned short count=0,unsigned short size=1, unsigned long number=0);
+   
+  ~Cycle ( );
+   
+  addr_t getTarget ( )   { return m_Target;  }
+   
+  int getCount ( )   {    return m_Count;  }
+   
+  int getNumber ( )   {    return m_Number;  }
+  /*возвращает идентификатор зонда   */
+  idprobe_t getIdProbe ( )   {    return m_IdProbe;  }
+   
+  int getSize ( )   {    return m_Size;  }
+};
+
+ 
+
+datatypes.h
+
+ 
+ *   Copyright (C) 2009 by IERO   *
+ *   iero@lna.org.ru   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ ***************************************************************************/
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+const long PING_DATA_SIZE= 26;
+const long PING_HDR_SIZE= 8;
+const long RES_QUERY_SIZE =10;
+const long NETEV_QUERY_SIZE= 10;
+const long PROBE_LIST_SIZE= 10;
+const long DBUF_SIZE=516;
+const long SBUF_SIZE =13352;
+const long RAWBUF_SIZE =4096;  
+const long MAX_PROBES =256;
+const long MAX_COUNT =1024;
+ 
+typedef unsigned char NetEventClass;
+typedef unsigned char NetEventType;
+typedef unsigned char probe_status_t;
+typedef std::string  adress_t;
+typedef unsigned long addr_t;
+typedef unsigned long long idprobe_t;
+typedef unsigned long node_result_t;  
+typedef long int timeoffset_t;
+typedef struct timespec timestamp_t;
+typedef long sock;
+
+ 
+ 
+ 
+typedef struct msg_header_t {
+  unsigned short msg_size;
+  unsigned char type;
+} msg_header;
+ 
+typedef struct probestate {
+      idprobe_t Probe_id;	 
+      long int cycle_num;	 
+      probe_status_t probe_status;	 
+} probe_state_s;
+ 
+typedef struct intro {  
+  long int rand_num;
+  char srv_name[256];
+} intro_s;
+typedef struct  ses_start{
+  long long session_id;
+} sesstart_s;
+typedef struct  disconn{
+  unsigned char code;
+  char  reason[512];
+} disconnect_s;
+typedef struct  get_cl_state{
+  long   int serial_num;
+} getclstate_s;
+typedef struct  set_probe{
+  idprobe_t Id_Probe;
+  unsigned long int interval;
+  unsigned long int    count;
+  addr_t  target;
+  unsigned short  size;
+  char state;
+} setprobe_s;
+typedef struct  data_ack{
+  long  int result_seq;
+  long  int event_seq;
+} dataack_s;
+ 
+typedef struct login {
+  long long  session_id;  
+  unsigned char MD5[16];   
+  char cl_name[256]; 
+} login_s;
+typedef struct  client_state{
+  timestamp_t curr_time;  
+  timestamp_t prev_comm_time;  
+  timestamp_t prev_state_time;  
+  long int serial_num;   
+  long int probe_count;	 
+  long  int active_probe_count;  
+  long int event_log_num;  
+  probe_state_s probes [ MAX_PROBES ] ;
+} clientstate_s;
+typedef struct  probe_result {
+  idprobe_t   probe_id; 	 
+  timestamp_t timestamp;	 
+  long int result_seq;	  
+  long  int cycle_num;	  
+  node_result_t result[MAX_COUNT];	 
+} proberesult_s;
+typedef struct  event_log{
+  idprobe_t  probe_id; 
+  timestamp_t   timestamp; 
+  long  event_seq; 
+  long  cycle_num	; 
+  addr_t adres;	 
+  NetEventType event_type	; 
+  NetEventClass  event_class; 
+} eventlog_s;
+typedef struct cl_disconnect {
+  unsigned char code;  
+  char  Reason[512];  
+} cldisconnect_s;
+ 
+typedef struct raw_body {
+  char msg_pref[8];
+  idprobe_t idprobe;
+  timestamp_t time;
+  unsigned short chksumma;
+} raw_body_t;
+
+ 
+md5.h
+
+/*
+  Copyright (C) 1999, 2002 Aladdin Enterprises.  All rights reserved.
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  L. Peter Deutsch
+  ghost@aladdin.com
+
+ */
+ 
+/*
+  Independent implementation of MD5 (RFC 1321).
+
+  This code implements the MD5 Algorithm defined in RFC 1321, whose
+  text is available at
+	http: 
+  The code is derived from the text of the RFC, including the test suite
+  (section A.5) but excluding the rest of Appendix A.  It does not include
+  any code or documentation that is identified in the RFC as being
+  copyrighted.
+
+  The original and principal author of md5.h is L. Peter Deutsch
+  <ghost@aladdin.com>.  Other authors are noted in the change history
+  that follows (in reverse chronological order):
+
+  2002-04-13 lpd Removed support for non-ANSI compilers; removed
+	references to Ghostscript; clarified derivation from RFC 1321;
+	now handles byte order either statically or dynamically.
+  1999-11-04 lpd Edited comments slightly for automatic TOC extraction.
+  1999-10-18 lpd Fixed typo in header comment (ansi2knr rather than md5);
+	added conditionalization for C++ compilation from Martin
+	Purschke <purschke@bnl.gov>.
+  1999-05-03 lpd Original version.
+ */
+
+ 
+ 
+
+/*
+ * This package supports both compile-time and run-time determination of CPU
+ * byte order.  If ARCH_IS_BIG_ENDIAN is defined as 0, the code will be
+ * compiled to run only on little-endian CPUs; if ARCH_IS_BIG_ENDIAN is
+ * defined as non-zero, the code will be compiled to run only on big-endian
+ * CPUs; if ARCH_IS_BIG_ENDIAN is not defined, the code will be compiled to
+ * run on either big- or little-endian CPUs, but will run slightly less
+ * efficiently on either one than if ARCH_IS_BIG_ENDIAN is defined.
+ */
+
+typedef unsigned char md5_byte_t;  
+typedef unsigned int md5_word_t;  
+
+ 
+typedef struct md5_state_s {
+    md5_word_t count[2];	 
+    md5_word_t abcd[4];		 
+    md5_byte_t buf[64];		 
+} md5_state_t;
+
+ 
+extern "C" 
+{
+ 
+
+ 
+void md5_init(md5_state_t *pms);
+
+ 
+void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
+
+ 
+void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
+
+ 
+}   
+ 
+
+ 
+
+NetEvent.h
+
+
+ 
+ 
+
+ 
+ 
+ 
+  * описание одного сетевого события  */
+using namespace std;
+class NetEvent
+{
+private:
+  addr_t m_Adress;   
+  timestamp_t m_Time;  
+  static unsigned long sequence;
+  unsigned long seq_num;
+  idprobe_t m_IdProbe;
+  unsigned long m_cycle_num;
+  NetEventType m_EventType;   
+  NetEventClass m_EvClass;   
+public:
+   
+  ~NetEvent ( );
+  /*constructor   */
+  NetEvent(addr_t addr,  idprobe_t IdProbe, unsigned long cycle_num, NetEventType evtype, NetEventClass evclass);
+   
+  addr_t getAdress ( )   {    return m_Adress;  }
+   
+  timestamp_t getTime ( )   {    return m_Time;  }
+   
+  NetEventType getEventType ( )   {    return m_EventType;  }
+   
+  NetEventClass getEvClass ( )   {    return m_EvClass;  }
+  unsigned long GetSeq(){ return seq_num;}
+  unsigned long GetCycleNum(){ return m_cycle_num;}
+  idprobe_t GetIdProbe(){return m_IdProbe;}
+};
+
+ 
+
+pingovator.h
+
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  * class Pingovator
+  * обрабатывает очередь циклов.
+  * выполняет цикл как только он поступает в очередь.
+  * при создании обекта инициализирует сокет и очередь циклов
+  */
+using namespace std;
+class Agent;  
+class Pingovator
+{
+  private:
+   
+   list<Cycle> m_Query;
+   
+    pthread_t m_f_thread;  
+    pthread_t m_s_thread; 
+     
+    pthread_mutex_t ProbeMutex;
+    pthread_cond_t m_SCond;  
+    unsigned short m_time_to_die;
+    sock m_socket;  
+    unsigned char m_RBuf[RAWBUF_SIZE];  
+    unsigned char m_SBuf[RAWBUF_SIZE];  
+    Agent * comandor;  
+     
+    void initReadSocket ( );
+   
+    void ExecCycle ();
+public:
+  friend void * FstThread (void * pthis );
+  friend void * SecThread (void * pthis );
+   
+   
+   
+  Pingovator ( Agent* comandor );
+   
+ ~Pingovator ( );
+   
+  void AddCycle (Cycle &cycle );
+   
+  int CickCond();  
+   
+  int getSocket(){return m_socket;}  
+  static void * FstThread (void * pthis );
+  static void * SecThread (void * pthis );
+
+};
+
+ 
+
+PostString.h
+
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+  * class PostString
+  * результат теста в виде понятном серверу.
+  */
+using namespace std;
+class PostString
+{
+  private:
+    idprobe_t m_idprobe;
+    unsigned long  int m_CycleNum;
+    unsigned long  int m_Count;
+    vector<node_result_t> m_Result;
+    static unsigned long sequence;
+    unsigned long seq_num;
+    timestamp_t m_Time;
+public:
+   
+ ~PostString ( );
+  
+ PostString (idprobe_t id_probe =0,unsigned long cyclenum=0, unsigned long count=0);
+   
+   * возвращает 0 если добавилось,
+   * -1 если результатов больше чем Count */
+ int AddResult (long int rtt, unsigned long pos);
+   
+  idprobe_t getIdProbe ( )   {    return m_idprobe;  }
+   
+  unsigned long   getCycleNum ( )   {    return m_CycleNum;  }
+   
+  unsigned long   getCount ( )   {    return m_Count;  }
+   
+  vector<node_result_t>& getResult ( )   {    return m_Result;  }
+   
+  unsigned long GetSeq(){ return seq_num;}
+  timestamp_t& getTime() {return m_Time;}
+};
+
+ 
+
+Probe.h
+
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+  * класс для теста одного узла и отсыла данных об нем.
+  изменение параметров зонда производится уничтожением старого и созданием нового с тем же идентификатором. для секурности и отсутствия пляок с мутексами.
+  */
+using namespace std;
+class Probe
+{
+  private:
+  unsigned short  timetodie;
+  pthread_t m_secthread;  
+  pthread_cond_t die;
+  pthread_mutex_t die_m;
+  Pingovator * m_pin;  
+  idprobe_t m_IdProbe;   
+  probe_status_t m_Status;  
+ 
+  addr_t m_Target;   
+  timestamp_t m_Start_Time;   
+  unsigned long m_Count;   
+  unsigned long m_Size;    
+  unsigned long m_Number;   
+  timeoffset_t m_Interval;     
+   
+  void Test ( ); 
+public:
+  friend void * test_thread(void *);
+   
+   
+  Probe (Pingovator * pin=NULL, idprobe_t id_probe=0, probe_status_t state=PS_STOPED, addr_t target=0, int count=0, short size=1,timeoffset_t interval =0);
+ ~Probe ( );
+   
+   
+  int Start ( );
+   
+   * при time=0 - до вызова Start  */
+  int Pause (int time = 0 );
+   
+ idprobe_t GetIdProbe ( ) {return m_IdProbe;}
+  int getCount ( )   {    return m_Count;  }
+   
+  timeoffset_t getInterval ( )   {    return m_Interval;  }
+   
+  void setStatus(probe_status_t new_var){m_Status = new_var; }
+   
+  probe_status_t getStatus(){return m_Status; }
+   
+  addr_t getTarget ( )   {    return m_Target;  }
+  /*Set the value  время начала текущего/последнего теста.*/
+  void setStart_Time ( timestamp_t new_var )   {      m_Start_Time = new_var;  }
+   
+  timestamp_t getStart_Time ( )   {    return m_Start_Time;  }
+  /*Set the размер пинга   */
+  int getSize ( )   {    return m_Size;  }
+   
+  int getNumber(){return m_Number;}
+  static void* test_thread(void *);
+};
+
+ 
+

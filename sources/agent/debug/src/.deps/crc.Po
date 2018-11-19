@@ -1,0 +1,1 @@
+crc.o: /media/s2/univer/diplomko/agent_nix/src/crc.cpp

@@ -1,0 +1,219 @@
+/***************************************************************************
+ *   Copyright (C) 2009 by IERO   *
+ *   iero@lna.org.ru   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ ***************************************************************************/
+
+#ifndef DATATYPES_H
+#define DATATYPES_H
+#include <string>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <iostream>
+#include <arpa/inet.h>
+#include <time.h>
+
+//перечислимые типы/константы
+///типы сообщений сервера
+const int SRV_INTRO =0;
+const int SRV_SES_START =1;
+const int SRV_DISCONNECT =2;
+const int SRV_GET_CL_STATE =3;
+const int SRV_SET_PROBE =4;
+const int SRV_DATA_ACK =5;
+///типы сообщений клиента
+const int CL_LOGIN =32;
+const int CL_STATE =33;
+const int CL_PROBE_RESULT =34;
+const int CL_EVENT_LOG =35;
+const int CL_DISCONNECT =36;
+///причины дисконекта от сервера
+const int BAD_LOGIN =6;
+const int TEMP_BUSY =7;
+const int HALT_SERVICE= 8;
+const int INTERNAL_ERROR= 9;
+///типы зондов в приказах
+const int PR_ACTIVE  =64;
+const int PR_PASSIVE =65;
+const int PR_REMOVE =66;
+///причины дисконнекта от клиента
+const int CL_INT_ERROR =192;
+const int CL_EXIT =193;
+////////////////////////////////////////////////////////////////
+///probe_status	внутренее состояние зонда
+const int PS_STOPED =0;
+const int PS_WAITING =1;
+const int PS_PROBING =2;
+const int PS_WAITING_RETRY =3;
+const int PS_PHANTOM =4;
+const int PS_BROKEN =5;
+const int PS_KILLED =6;
+/// event_type	тип события
+const int EV_T_ERRNO =1;
+const int EV_T_ICMP =0; //  errcode или ICMP Code; 
+/// event_class	класс события. в случае ERRCODE записывается errno. вероятно, данная штука ненужна. бум инклюдить системный
+const int   EV_CL_EMPTY= 0;  // Пустая запись (служит для заполнения неиспользуемых элементов массива);
+const int   EV_CL_ICMP_DEST_UNREACH =3; //               * ICMP Destination unreachable (ICMP Type=3);
+const int  EV_CL_ICMP_SRC_QUENCH =4; //               * ICMP Source Quench (ICMP Type=4);
+const int  EV_CL_ICMP_REDIRECT =5; //               * ICMP Redirect (ICMP Type=5);
+const int EV_CL_ICMP_TTL  =11;//               * ICMP Tme Exceeded (ICMP Type=11);
+const int EV_CL_ICMP_PARAM_PROBLEM =12; //               * ICMP Parameter Problem (ICMP Type=12);
+
+/** возвращаемые функциями агента значения*/
+const int AG_GOOD =-256; //если все хорошо?
+const int AG_BAD_SOCKET =-1;//если зафейлено создание сокета
+const int AG_FAIL_CONNECT =-2; //если зафейлено приконекчивание
+const int AG_BAD_SRV_ADDR =-5;//если неверный адрес сервера
+//const int AG_UNAVAIL_AUTH =-6; //временно невозможна авторизация
+const int AG_FAIL_AUTH =-7; //завалена авторизация
+const int AG_BAD_CONNECT =-11; //сокет отвалился в процессе работы
+const int AG_BAD_SENDER =-12; //не смогли родить второй поток
+const int AG_EXIT =-255; //поступил приказ закрываться
+const int AG_BAD_INTRO =-32;//если вначале пришло не интро
+const int AG_BAD_NAME =-33;//неверное имя?
+const int AG_BAD_MSG =-34;//если пришло неверное сообщение
+/** возвращаемые функциями агента значения*/
+const int SR_GOOD =-256; //если все хорошо?
+const int SR_BAD_SOCKET =-1;//если зафейлено создание сокета
+const int SR_FAIL_AUTH =-7; //завалена авторизация
+const int SR_BAD_CONNECT =-11; //сокет отвалился в процессе работы
+const int SR_BAD_CTL =-12; //не смогли родить второй поток
+const int SR_EXIT =-255; //клиент сказал что закрывается. можно спокойно помирать. оно же послали клиенту дисконект. и опять же можно спокойно помирать.
+const int SR_BAD_SESSION =-23;//если не удалось найти/создать сессию
+const int SR_BAD_EVENT =-24;//учли пришло незарегистрированое в справочнике событие
+const int SR_BAD_MSG =-33;//если пришло неверное сообщение
+//////////////////////////////////////////////////////////////
+const int EVENT=0;
+const int RESULT=1;
+/** *******************************/
+//константы
+const long PING_DATA_SIZE= 26;
+const long PING_HDR_SIZE= 8;
+const long RES_QUERY_SIZE =10;
+const long NETEV_QUERY_SIZE= 10;
+const long PROBE_LIST_SIZE= 10;
+const long DBUF_SIZE=516;
+const long SBUF_SIZE =13352;
+const long RAWBUF_SIZE =65535; //макс. размер пинга. пока хватит такого.
+const long MAX_PROBES = 256;
+const long MAX_COUNT =1024;
+const long MAX_RES_TIMEOUT= 10; //что составляет 10 сек. большее время таймаута абсурдно в современных сетях.
+/**  */
+typedef unsigned char NetEventClass;
+typedef unsigned char NetEventType;
+typedef unsigned char probe_status_t;
+typedef std::string  adress_t;
+typedef unsigned long addr_t;
+typedef unsigned long long idprobe_t;
+typedef long node_result_t; //при таком раскладе пинги с rtt больше 10 минут не фиксируются.
+typedef long int timeoffset_t;
+typedef struct timeval timestamp_t;
+typedef long sock;
+
+//структуры для пересылки данных по протоколу
+//хедер сообщений
+#pragma pack (1)
+typedef struct msg_header_t {
+  unsigned short msg_size;
+  unsigned char type;
+} msg_header;
+//элемента массива зондов
+typedef struct probestate {
+      idprobe_t Probe_id;	//int64	идентификатор зонда
+      long int cycle_num;	//Кол-во выполненных зондом циклов
+      probe_status_t probe_status;	//enum	состояние этого зонда
+} probe_state_s;
+//от сервера
+typedef struct intro { //INTRO - первое сообщение от сервера
+  long int rand_num;
+  char srv_name[256];
+} intro_s;
+typedef struct  ses_start{
+  long long session_id;
+} sesstart_s;
+typedef struct  disconn{
+  unsigned char code;
+  char  reason[512];
+} disconnect_s;
+typedef struct  get_cl_state{
+  long   int serial_num;
+} getclstate_s;
+typedef struct  set_probe{
+  idprobe_t Id_Probe;
+  unsigned long int interval;
+  unsigned long int    count;
+  addr_t  target;
+  unsigned short  size;
+  char state;
+} setprobe_s;
+typedef struct  data_ack{
+  unsigned long  int result_seq;
+  unsigned int event_seq;
+} dataack_s;
+//////////////////////////////////////////////////////////
+typedef struct login {
+  long long  session_id; //	0 если конект первый раз | старый ID соединения
+  unsigned char MD5[16];  //	результат хеша
+  char cl_name[256];//	wchar[n]	условное имя клиента
+} login_s;
+typedef struct  client_state{
+  timestamp_t curr_time; //	int64	текущее время узла
+  timestamp_t prev_comm_time; //	int64	время получения предыдущей команды
+  timestamp_t prev_state_time; //	int64	время получения предыдущего запроса состояния
+  long int serial_num;  //	int32	номер ответа на get_cl_state
+  long int probe_count;	//int32	Кол-во зондов
+  long  int active_probe_count; //	int32	Кол-во активных зонтов
+  long int event_log_num; //	int32	номер последнего сетевого события в списке
+  probe_state_s probes [ MAX_PROBES ] ;
+} clientstate_s;
+typedef struct  probe_result {
+  idprobe_t   probe_id; 	//int64	идентификатор генерирующего зонда
+  timestamp_t timestamp;	//int64	время начала цикла
+  unsigned long int result_seq;	 //int32	номер в очереди
+  unsigned long  int cycle_num;	 //int32	номер цикла
+  node_result_t result[MAX_COUNT];	//Время отклика в микросекундах
+} proberesult_s;
+typedef struct  event_log{
+  idprobe_t  probe_id;//	int64	идентификатор связаного зонда
+  timestamp_t   timestamp;//	int64	время события
+  unsigned long  event_seq;//	int32	;//номер в очереди
+  unsigned long  cycle_num	;//	номер цикла с возникшим событием
+  addr_t adres;	//inet_addr	адрес узла, сгенерировавшего событие
+  NetEventType event_type	;//тип события
+  NetEventClass  event_class;// класс события
+} eventlog_s;
+typedef struct cl_disconnect {
+  unsigned char code; //	byte	код возврата
+  char  Reason[512]; //	wchar[n]	читабельная причина
+} cldisconnect_s;
+//структура фрагмента тела ICMP-дейтаграммы
+typedef struct raw_body {
+  char msg_pref[4];
+  idprobe_t idprobe;
+  timestamp_t time;
+  unsigned long number;
+  unsigned short ping_num;
+  unsigned short chksumma;
+} raw_body_t;
+///////*********************************////////////////
+struct  map_key{
+  idprobe_t id;
+  unsigned long num;
+  bool operator<(const map_key& k) const {return id<k.id; }
+  map_key(idprobe_t i,unsigned long c):id(i),num(c){}
+};
+#endif // AGENT_H

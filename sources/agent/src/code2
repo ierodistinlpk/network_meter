@@ -1,0 +1,692 @@
+Agent.h
+
+ 
+                        Agent.h.h - Copyright iero
+
+Here you can write a license for your code, some comments or any other
+information you want to have in your generated code. To to this simply
+configure the "headings" directory in uml to point to a directory
+where you have your heading files.
+
+or you can just replace the contents of this file with your own.
+If you want to do this, this file is located at
+
+/usr/share/apps/umbrello/headings/heading.h
+
+-->Code Generators searches for heading files based on the file extension
+   i.e. it will look for a file name ending in ".h" to include in C++ header
+   files, and for a file name ending in ".java" to include in all generated
+   java code.
+   If you name the file "heading.<extension>", Code Generator will always
+   choose this file even if there are other files with the same extension in the
+   directory. If you name the file something else, it must be the only one with that
+   extension in the directory to guarantee that Code Generator will choose it.
+
+you can use variables in your heading files which are replaced at generation
+time. possible variables are : author, date, time, filename and filepath.
+just write %variable_name%
+
+This file was generated on Пнд Мар 23 2009 at 19:52:10
+The original location of this file is /media/s2/univer/diplomko/agent_nix/Agent.h
+**************************************************************************/
+
+#ifndef AGENT_H
+#define AGENT_H
+
+#include <string>
+#include <vector>
+#include <list>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include "Probe.h"
+#include "NetEvent.h"
+#include "PostString.h"
+#include "pingovator.h"
+#include "datatypes.h"
+using namespace std;
+ 
+class Agent
+{
+  private:
+    pthread_mutex_t send_mut; //мютекс на тред общения с сервером
+    pthread_t m_r_thread; //поток-отправлялка
+    pthread_mutex_t m_query_mutex; //мутех очереди результатов
+    pthread_cond_t m_Cond; //пиналка потока - посылателя
+    unsigned short m_time_to_die;
+  // условное имя агента
+    string m_Name;
+  // адрес сервера
+    adress_t m_Address;
+    sock m_Soket; //сокет связи с сервером.
+    unsigned short m_Port;
+    unsigned long m_next_event;
+    unsigned long m_next_result;
+    unsigned long m_cur_event;
+    unsigned long m_cur_result;
+    timestamp_t last_comm_time;
+    timestamp_t last_request_time;
+    long m_comm_seq;
+    long long m_SessionId;
+  // буфер приемки всего с сокета.
+    msg_header m_HRBuf; //header receive buffer
+    msg_header m_HSBuf; //header send buffer
+    unsigned char m_RBuf[DBUF_SIZE]; //data receive buffer
+    unsigned char m_SBuf[DBUF_SIZE]; //data send buffer
+    //указатели на буфер разных типов. по одному на вид сообщения.
+    //на прием
+    intro_s * pintro;
+    sesstart_s * psesstart;
+    disconnect_s * pdisconnect;
+    getclstate_s * pgetclstate;
+    setprobe_s * psetprobe;
+    dataack_s * pdataack;
+    // на отправку
+    login_s * plogin;
+    clientstate_s * pclientstate;
+    proberesult_s * pproberesult;
+    eventlog_s * peventlog;
+    cldisconnect_s * pclientdisconnect;
+    // очередь результатов для отправки на сервер.
+    list<PostString> m_ResultQuery;//[RES_QUERY_SIZE];
+  // очередь сетевых событий для отправки на сервер.
+    list<NetEvent> m_EventList;//[NETEV_QUERY_SIZE];
+  //список зондов
+    list<Probe*> m_ProbeList;//[PROBE_LIST_SIZE];
+    Pingovator * m_pinger; //пинговатор принадлежащий агенту.
+   //внутренние методы  
+    // 3 метода возвращают отрцательный пользовательский код или положительный errno
+     //возвращать нуль по идее не должны
+    int Connect ( );   //соединяется с сервером по tcp.возвращает успешность
+    int Auth(); //авторизуется на сервере. возвращает code принятый от сервера
+     
+    int StartQuest ( );
+     
+    void SendResult ( );
+    void KillSec(); //убивает привязаный второй поток
+    int SendBuf(); //отправляет уже заполненый буфер thread-safe
+public:
+  // Constructors/Destructors
+   
+  Agent ( );
+   
+  ~Agent ( );
+   
+   * по завершении возвращает причину выхода.
+   * по завершении стоит убивать агента, чтобы не проболтался.
+   * @param  filename   */
+  int StartWork (string filename);
+  /*добавляет сетевой событие в очередь   */
+  void AddEvent (NetEvent& event );
+   
+  void AddResult (PostString& result );
+  // Private attribute accessor methods
+   
+  string getName ( )   {    return m_Name;  }
+   
+//  adress getAddress ( )   {    return m_Address;  }
+  int CickCond(); //метод для пинательства агента пинговатором
+  static void * SecThread (void * pthis );
+};
+
+#endif // AGENT_H
+
+Cycle.h
+
+
+#ifndef CYCLE_H
+#define CYCLE_H
+
+#include <string>
+#include "datatypes.h"
+ 
+  * class Cycle
+  * описание одного цикла посыла пакетов
+  */
+
+class Cycle
+{
+private:
+  // Id зонда добавляющего цикл.
+  idprobe_t m_IdProbe;
+  // адрес цели
+  addr_t m_Target;
+  // кол-во пакетов
+  unsigned short m_Count;
+  // размер пакета
+  unsigned short m_Size;
+  unsigned long m_Number;
+  public:
+   
+    Cycle (idprobe_t idprobe=0, addr_t target=2130706433, unsigned short count=0,unsigned short size=1, unsigned long number=0);
+   
+  ~Cycle ( );
+   
+  addr_t getTarget ( )   { return m_Target;  }
+   
+  int getCount ( )   {    return m_Count;  }
+   
+  int getNumber ( )   {    return m_Number;  }
+  /*возвращает идентификатор зонда   */
+  idprobe_t getIdProbe ( )   {    return m_IdProbe;  }
+   
+  int getSize ( )   {    return m_Size;  }
+};
+
+#endif // CYCLE_H
+
+datatypes.h
+
+ 
+ *   Copyright (C) 2009 by IERO   *
+ *   iero@lna.org.ru   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ ***************************************************************************/
+
+#ifndef DATATYPES_H
+#define DATATYPES_H
+#include <string>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <iostream>
+#include <arpa/inet.h>
+#include <time.h>
+
+//перечислимые типы/константы
+///типы сообщений сервера
+#define SRV_INTRO 0
+#define SRV_SES_START 1
+#define SRV_DISCONNECT 2
+#define SRV_GET_CL_STATE 3
+#define SRV_SET_PROBE 4
+#define SRV_DATA_ACK 5
+///типы сообщений клиента
+#define CL_LOGIN 32
+#define CL_STATE 33
+#define CL_PROBE_RESULT 34
+#define CL_EVENT_LOG 35
+#define CL_DISCONNECT 36
+///причины дисконекта от сервера
+#define BAD_LOGIN 6
+#define TEMP_BUSY 7
+#define HALT_SERVICE 8
+///типы зондов в приказах
+#define PR_ACTIVE  64
+#define PR_PASSIVE 65
+#define PR_REMOVE 66
+///причины дисконнекта от клиента
+#define CL_INT_ERROR 192
+#define CL_EXIT 193
+////////////////////////////////////////////////////////////////
+///probe_status	внутренее состояние зонда
+#define PS_STOPED 0
+#define PS_WAITING 1
+#define PS_PROBING 2
+#define PS_WAITING_RETRY 3
+#define PS_PHANTOM 4
+#define PS_BROKEN 5
+#define PS_KILLED 6
+/// event_type	тип события
+#define EV_T_ERRNO 0
+#define EV_T_ICMP 1  errcode или ICMP Code; 
+#define EV_T_DEFAULT 2
+/// event_class	класс события. в случае ERRCODE записывается errno. вероятно, данная штука ненужна. бум инклюдить системный
+#define   EV_CL_EMPTY 0  // Пустая запись (служит для заполнения неиспользуемых элементов массива);
+#define   EV_CL_ICMP_DEST_UNREACH 3 //               * ICMP Destination unreachable (ICMP Type=3);
+#define  EV_CL_ICMP_SRC_QUENCH 4 //               * ICMP Source Quench (ICMP Type=4);
+#define  EV_CL_ICMP_REDIRECT 5 //               * ICMP Redirect (ICMP Type=5);
+#define EV_CL_ICMP_TTL  11//               * ICMP Tme Exceeded (ICMP Type=11);
+#define EV_CL_ICMP_PARAM_PROBLEM 12 //               * ICMP Parameter Problem (ICMP Type=12);
+
+ 
+#define AG_GOOD -256 //если зафейлено приконекчивание
+#define AG_BAD_SOCKET -1//если зафейлено создание сокета
+#define AG_FAIL_CONNECT -2 //если зафейлено приконекчивание
+#define AG_BAD_SRV_ADDR -5//если зафейлено приконекчивание
+#define AG_UNAVAIL_AUTH -6 //временно невозможна авторизация
+#define AG_FAIL_AUTH -7 //завалена авторизация
+#define AG_BAD_CONNECT -11 //сокет отвалился в процессе работы
+#define AG_BAD_SENDER -12 //не смогли родить второй поток
+#define AG_EXIT -255 //поступил приказ закрываться
+#define AG_BAD_INTRO -32//если зафейлено приконекчивание
+#define AG_BAD_MSG -33//если зафейлено приконекчивание
+//////////////////////////////////////////////////////////////
+
+ 
+//константы
+const long PING_DATA_SIZE= 26;
+const long PING_HDR_SIZE= 8;
+const long RES_QUERY_SIZE =10;
+const long NETEV_QUERY_SIZE= 10;
+const long PROBE_LIST_SIZE= 10;
+const long DBUF_SIZE=516;
+const long SBUF_SIZE =13352;
+const long RAWBUF_SIZE =4096; //вот он макс. размер пинга. пока хватит такого.
+const long MAX_PROBES =256;
+const long MAX_COUNT =1024;
+ 
+typedef unsigned char NetEventClass;
+typedef unsigned char NetEventType;
+typedef unsigned char probe_status_t;
+typedef std::string  adress_t;
+typedef unsigned long addr_t;
+typedef unsigned long long idprobe_t;
+typedef unsigned long node_result_t; //при таком раскладе пинги с rtt больше 20 минут не фиксируются.
+typedef long int timeoffset_t;
+typedef struct timespec timestamp_t;
+typedef long sock;
+
+//структуры для пересылки данных по протоколу
+//хедер сообщений
+#pragma pack (1)
+typedef struct msg_header_t {
+  unsigned short msg_size;
+  unsigned char type;
+} msg_header;
+//элемента массива зондов
+typedef struct probestate {
+      idprobe_t Probe_id;	//int64	идентификатор зонда
+      long int cycle_num;	//Кол-во выполненных зондом циклов
+      probe_status_t probe_status;	//enum	состояние этого зонда
+} probe_state_s;
+//от сервера
+typedef struct intro { //INTRO - первое сообщение от сервера
+  long int rand_num;
+  char srv_name[256];
+} intro_s;
+typedef struct  ses_start{
+  long long session_id;
+} sesstart_s;
+typedef struct  disconn{
+  unsigned char code;
+  char  reason[512];
+} disconnect_s;
+typedef struct  get_cl_state{
+  long   int serial_num;
+} getclstate_s;
+typedef struct  set_probe{
+  idprobe_t Id_Probe;
+  unsigned long int interval;
+  unsigned long int    count;
+  addr_t  target;
+  unsigned short  size;
+  char state;
+} setprobe_s;
+typedef struct  data_ack{
+  long  int result_seq;
+  long  int event_seq;
+} dataack_s;
+//////////////////////////////////////////////////////////
+typedef struct login {
+  long long  session_id; //	0 если конект первый раз | старый ID соединения
+  unsigned char MD5[16];  //	результат хеша
+  char cl_name[256];//	wchar[n]	условное имя клиента
+} login_s;
+typedef struct  client_state{
+  timestamp_t curr_time; //	int64	текущее время узла
+  timestamp_t prev_comm_time; //	int64	время получения предыдущей команды
+  timestamp_t prev_state_time; //	int64	время получения предыдущего запроса состояния
+  long int serial_num;  //	int32	номер ответа на get_cl_state
+  long int probe_count;	//int32	Кол-во зондов
+  long  int active_probe_count; //	int32	Кол-во активных зонтов
+  long int event_log_num; //	int32	номер последнего сетевого события в списке
+  probe_state_s probes [ MAX_PROBES ] ;
+} clientstate_s;
+typedef struct  probe_result {
+  idprobe_t   probe_id; 	//int64	идентификатор генерирующего зонда
+  timestamp_t timestamp;	//int64	время начала цикла
+  long int result_seq;	 //int32	номер в очереди
+  long  int cycle_num;	 //int32	номер цикла
+  node_result_t result[MAX_COUNT];	//Время отклика в микросекундах
+} proberesult_s;
+typedef struct  event_log{
+  idprobe_t  probe_id;//	int64	идентификатор связаного зонда
+  timestamp_t   timestamp;//	int64	время события
+  long  event_seq;//	int32	;//номер в очереди
+  long  cycle_num	;//	номер цикла с возникшим событием
+  addr_t adres;	//inet_addr	адрес узла, сгенерировавшего событие
+  NetEventType event_type	;//тип события
+  NetEventClass  event_class;// класс события
+} eventlog_s;
+typedef struct cl_disconnect {
+  unsigned char code; //	byte	код возврата
+  char  Reason[512]; //	wchar[n]	читабельная причина
+} cldisconnect_s;
+//структура фрагмента тела ICMP-дейтаграммы
+typedef struct raw_body {
+  char msg_pref[8];
+  idprobe_t idprobe;
+  timestamp_t time;
+  unsigned short chksumma;
+} raw_body_t;
+
+#endif // AGENT_H
+md5.h
+
+/*
+  Copyright (C) 1999, 2002 Aladdin Enterprises.  All rights reserved.
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  L. Peter Deutsch
+  ghost@aladdin.com
+
+ */
+ 
+/*
+  Independent implementation of MD5 (RFC 1321).
+
+  This code implements the MD5 Algorithm defined in RFC 1321, whose
+  text is available at
+	http://www.ietf.org/rfc/rfc1321.txt
+  The code is derived from the text of the RFC, including the test suite
+  (section A.5) but excluding the rest of Appendix A.  It does not include
+  any code or documentation that is identified in the RFC as being
+  copyrighted.
+
+  The original and principal author of md5.h is L. Peter Deutsch
+  <ghost@aladdin.com>.  Other authors are noted in the change history
+  that follows (in reverse chronological order):
+
+  2002-04-13 lpd Removed support for non-ANSI compilers; removed
+	references to Ghostscript; clarified derivation from RFC 1321;
+	now handles byte order either statically or dynamically.
+  1999-11-04 lpd Edited comments slightly for automatic TOC extraction.
+  1999-10-18 lpd Fixed typo in header comment (ansi2knr rather than md5);
+	added conditionalization for C++ compilation from Martin
+	Purschke <purschke@bnl.gov>.
+  1999-05-03 lpd Original version.
+ */
+
+#ifndef md5_INCLUDED
+#  define md5_INCLUDED
+
+/*
+ * This package supports both compile-time and run-time determination of CPU
+ * byte order.  If ARCH_IS_BIG_ENDIAN is defined as 0, the code will be
+ * compiled to run only on little-endian CPUs; if ARCH_IS_BIG_ENDIAN is
+ * defined as non-zero, the code will be compiled to run only on big-endian
+ * CPUs; if ARCH_IS_BIG_ENDIAN is not defined, the code will be compiled to
+ * run on either big- or little-endian CPUs, but will run slightly less
+ * efficiently on either one than if ARCH_IS_BIG_ENDIAN is defined.
+ */
+
+typedef unsigned char md5_byte_t;  
+typedef unsigned int md5_word_t;  
+
+ 
+typedef struct md5_state_s {
+    md5_word_t count[2];	 
+    md5_word_t abcd[4];		 
+    md5_byte_t buf[64];		 
+} md5_state_t;
+
+#ifdef __cplusplus
+extern "C" 
+{
+#endif
+
+ 
+void md5_init(md5_state_t *pms);
+
+ 
+void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
+
+ 
+void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
+
+#ifdef __cplusplus
+}   
+#endif
+
+#endif  
+
+NetEvent.h
+
+
+#ifndef NETEVENT_H
+#define NETEVENT_H
+
+#include <string>
+#include "datatypes.h"
+ 
+  * описание одного сетевого события  */
+using namespace std;
+class NetEvent
+{
+private:
+  addr_t m_Adress;  // IP адрес источника события;
+  timestamp_t m_Time; //          - относительное время фиксации события;
+  static unsigned long sequence;
+  unsigned long seq_num;
+  idprobe_t m_IdProbe;
+  unsigned long m_cycle_num;
+  NetEventType m_EventType;  //          - вид события - errcode или ICMP Code; 
+  NetEventClass m_EvClass;  //   - класс события:
+public:
+   
+  ~NetEvent ( );
+  /*constructor   */
+  NetEvent(addr_t addr,  idprobe_t IdProbe, unsigned long cycle_num, NetEventType evtype, NetEventClass evclass);
+   
+  addr_t getAdress ( )   {    return m_Adress;  }
+   
+  timestamp_t getTime ( )   {    return m_Time;  }
+   
+  NetEventType getEventType ( )   {    return m_EventType;  }
+   
+  NetEventClass getEvClass ( )   {    return m_EvClass;  }
+  unsigned long GetSeq(){ return seq_num;}
+  unsigned long GetCycleNum(){ return m_cycle_num;}
+  idprobe_t GetIdProbe(){return m_IdProbe;}
+};
+
+#endif // NETEVENT_H
+
+pingovator.h
+
+
+#ifndef PINGOVATOR_H
+#define PINGOVATOR_H
+
+#include <string>
+#include <vector>
+#include <list>
+#include "Cycle.h"
+//#include "Agent.h"
+#include "datatypes.h"
+ 
+  * class Pingovator
+  * обрабатывает очередь циклов.
+  * выполняет цикл как только он поступает в очередь.
+  * при создании обекта инициализирует сокет и очередь циклов
+  */
+using namespace std;
+class Agent; //енто нужная хрень
+class Pingovator
+{
+  private:
+  // список нужных в данный момент циклов
+   list<Cycle> m_Query;
+  // мютекс используемый для ожидания завершения потока чтения.
+    pthread_t m_f_thread; //поток-отправлялка
+    pthread_t m_s_thread;//поток-принималка
+    // мьютекс на работу с очередью. и напоминалку
+    pthread_mutex_t ProbeMutex;
+    pthread_cond_t m_SCond; //пиналка пинговатора когда добавляется цикл
+    unsigned short m_time_to_die;
+    sock m_socket; //в него мы пингуем
+    unsigned char m_RBuf[RAWBUF_SIZE]; //data receive buffer
+    unsigned char m_SBuf[RAWBUF_SIZE]; //data send buffer
+    Agent * comandor; //ссылка на экземпляр агента к кому относимся, чтобы знать кому результаты возвращать
+     
+    void initReadSocket ( );
+   
+    void ExecCycle ();
+public:
+  friend void * FstThread (void * pthis );
+  friend void * SecThread (void * pthis );
+  // Constructors/Destructors
+  //  
+   
+  Pingovator ( Agent* comandor );
+   
+ ~Pingovator ( );
+   
+  void AddCycle (Cycle &cycle );
+   
+  int CickCond(); //метод для пинательства пинговатора зондами
+   
+  int getSocket(){return m_socket;} //для определения успешности создания сокета и хорош.
+  static void * FstThread (void * pthis );
+  static void * SecThread (void * pthis );
+
+};
+
+#endif // PINGOVATOR_H
+
+PostString.h
+
+
+#ifndef POSTSTRING_H
+#define POSTSTRING_H
+
+#include <string>
+#include <vector>
+#include "datatypes.h"
+ 
+  * class PostString
+  * результат теста в виде понятном серверу.
+  */
+using namespace std;
+class PostString
+{
+  private:
+    idprobe_t m_idprobe;
+    unsigned long  int m_CycleNum;
+    unsigned long  int m_Count;
+    vector<node_result_t> m_Result;
+    static unsigned long sequence;
+    unsigned long seq_num;
+    timestamp_t m_Time;
+public:
+   
+ ~PostString ( );
+  
+ PostString (idprobe_t id_probe =0,unsigned long cyclenum=0, unsigned long count=0);
+   
+   * возвращает 0 если добавилось,
+   * -1 если результатов больше чем Count */
+ int AddResult (long int rtt, unsigned long pos);
+   
+  idprobe_t getIdProbe ( )   {    return m_idprobe;  }
+   
+  unsigned long   getCycleNum ( )   {    return m_CycleNum;  }
+   
+  unsigned long   getCount ( )   {    return m_Count;  }
+   
+  vector<node_result_t>& getResult ( )   {    return m_Result;  }
+   
+  unsigned long GetSeq(){ return seq_num;}
+  timestamp_t& getTime() {return m_Time;}
+};
+
+#endif // POSTSTRING_H
+
+Probe.h
+
+
+#ifndef PROBE_H
+#define PROBE_H
+
+#include <string>
+#include <vector>
+#include "datatypes.h"
+#include "pingovator.h"
+ 
+  * класс для теста одного узла и отсыла данных об нем.
+  изменение параметров зонда производится уничтожением старого и созданием нового с тем же идентификатором. для секурности и отсутствия пляок с мутексами.
+  */
+using namespace std;
+class Probe
+{
+  private:
+  unsigned short  timetodie;
+  pthread_t m_secthread; //идентификатор потока в котором крутим цикл
+  pthread_cond_t die;
+  pthread_mutex_t die_m;
+  Pingovator * m_pin; //указатель на пинговатор которому поставляем циклы
+  idprobe_t m_IdProbe;  // идентификатор зонда
+  probe_status_t m_Status; // глобальный статус выставляемый агентом. см описание типа.
+//  probe_status_t m_CurStatus; // текущий статус выставляемый пинговатором. извещает что пошел цикл этого зонда. на перспективу
+  addr_t m_Target;  // адрес проверяемого данным зондом.
+  timestamp_t m_Start_Time;  // время начала текущего/последнего теста.
+  unsigned long m_Count;  // кол-во пингов в тесте
+  unsigned long m_Size;   // размер пинга
+  unsigned long m_Number;  // номер последнего сгенерированого цикла
+  timeoffset_t m_Interval;    // время ожидания между тестами в секундах.
+   
+  void Test ( ); 
+public:
+  friend void * test_thread(void *);
+  // Constructors/Destructors
+   
+  Probe (Pingovator * pin=NULL, idprobe_t id_probe=0, probe_status_t state=PS_STOPED, addr_t target=0, int count=0, short size=1,timeoffset_t interval =0);
+ ~Probe ( );
+  // Public attribute accessor methods
+   
+  int Start ( );
+   
+   * при time=0 - до вызова Start  */
+  int Pause (int time = 0 );
+   
+ idprobe_t GetIdProbe ( ) {return m_IdProbe;}
+  int getCount ( )   {    return m_Count;  }
+   
+  timeoffset_t getInterval ( )   {    return m_Interval;  }
+   
+  void setStatus(probe_status_t new_var){m_Status = new_var; }
+   
+  probe_status_t getStatus(){return m_Status; }
+   
+  addr_t getTarget ( )   {    return m_Target;  }
+  /*Set the value  время начала текущего/последнего теста.*/
+  void setStart_Time ( timestamp_t new_var )   {      m_Start_Time = new_var;  }
+   
+  timestamp_t getStart_Time ( )   {    return m_Start_Time;  }
+  /*Set the размер пинга   */
+  int getSize ( )   {    return m_Size;  }
+   
+  int getNumber(){return m_Number;}
+  static void* test_thread(void *);
+};
+
+#endif // PROBE_H
+

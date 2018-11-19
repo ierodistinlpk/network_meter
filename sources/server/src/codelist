@@ -1,0 +1,440 @@
+master.h
+
+
+#ifndef MASTER_H
+#define MASTER_H
+
+#include <string>
+#include <list>
+
+#include "../../agent_nix/src/datatypes.h"
+
+
+  void readConfig (string filename );
+
+  /**   */
+  void SetBigList ( );
+
+
+#endif // MASTER_H
+
+md5.h
+
+/*
+  Copyright (C) 1999, 2002 Aladdin Enterprises.  All rights reserved.
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  L. Peter Deutsch
+  ghost@aladdin.com
+
+ */
+/* $Id: md5.h,v 1.4 2002/04/13 19:20:28 lpd Exp $ */
+/*
+  Independent implementation of MD5 (RFC 1321).
+
+  This code implements the MD5 Algorithm defined in RFC 1321, whose
+  text is available at
+	http://www.ietf.org/rfc/rfc1321.txt
+  The code is derived from the text of the RFC, including the test suite
+  (section A.5) but excluding the rest of Appendix A.  It does not include
+  any code or documentation that is identified in the RFC as being
+  copyrighted.
+
+  The original and principal author of md5.h is L. Peter Deutsch
+  <ghost@aladdin.com>.  Other authors are noted in the change history
+  that follows (in reverse chronological order):
+
+  2002-04-13 lpd Removed support for non-ANSI compilers; removed
+	references to Ghostscript; clarified derivation from RFC 1321;
+	now handles byte order either statically or dynamically.
+  1999-11-04 lpd Edited comments slightly for automatic TOC extraction.
+  1999-10-18 lpd Fixed typo in header comment (ansi2knr rather than md5);
+	added conditionalization for C++ compilation from Martin
+	Purschke <purschke@bnl.gov>.
+  1999-05-03 lpd Original version.
+ */
+
+#ifndef md5_INCLUDED
+#  define md5_INCLUDED
+
+/*
+ * This package supports both compile-time and run-time determination of CPU
+ * byte order.  If ARCH_IS_BIG_ENDIAN is defined as 0, the code will be
+ * compiled to run only on little-endian CPUs; if ARCH_IS_BIG_ENDIAN is
+ * defined as non-zero, the code will be compiled to run only on big-endian
+ * CPUs; if ARCH_IS_BIG_ENDIAN is not defined, the code will be compiled to
+ * run on either big- or little-endian CPUs, but will run slightly less
+ * efficiently on either one than if ARCH_IS_BIG_ENDIAN is defined.
+ */
+
+typedef unsigned char md5_byte_t; /* 8-bit byte */
+typedef unsigned int md5_word_t; /* 32-bit word */
+
+/* Define the state of the MD5 Algorithm. */
+typedef struct md5_state_s {
+    md5_word_t count[2];	/* message length in bits, lsw first */
+    md5_word_t abcd[4];		/* digest buffer */
+    md5_byte_t buf[64];		/* accumulate block */
+} md5_state_t;
+
+#ifdef __cplusplus
+extern "C" 
+{
+#endif
+
+/* Initialize the algorithm. */
+void md5_init(md5_state_t *pms);
+
+/* Append a string to the message. */
+void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
+
+/* Finish the message and return the digest. */
+void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
+
+#ifdef __cplusplus
+}  /* end extern "C" */
+#endif
+
+#endif /* md5_INCLUDED */
+
+mortuary_janitor.h
+
+/***************************************************************************
+ *   Copyright (C) 2009 by IERO   *
+ *   iero@localhost   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+#ifndef MORTUARY_JAINTOR__H
+#define MORTUARY_JAINTOR__H
+
+#include <list>
+#include <pthread.h>
+#include "secretarsha_Lena.h"
+class Mortuary_Jaintor{
+  short m_die_status;
+  friend class secretarsha_Lena;
+  static pthread_cond_t handle;
+  static pthread_mutex_t handle_mutex;
+  pthread_t ctl_thr;
+  list< secretarsha_Lena* > * List;
+  void ctl_thread ( );
+public:
+  Mortuary_Jaintor(list< secretarsha_Lena* > * llist);
+  ~Mortuary_Jaintor();
+  static void * FstThread (void * pthis );
+};
+
+
+#endif //MORTUARY_JAINTOR__H
+secretarsha_Lena.h
+
+
+#ifndef SECRETARSHA_LENA_H
+#define SECRETARSHA_LENA_H
+
+#include <string>
+#include <list>
+#include "../../agent_nix/src/datatypes.h"
+#include "srvProbe.h"
+#include "session_state.h"
+using namespace std;
+/**  * class secretarsha_Lena  */
+
+class secretarsha_Lena
+{
+  private:
+    short m_die_status;
+    pthread_t main_thr;
+    pthread_t ctl_thr;
+    pthread_cond_t condition;
+    pthread_mutex_t inner_mutex;
+    string m_logfile;
+    msg_header m_HRBuf; //header receive buffer
+    msg_header m_HSBuf; //header receive buffer
+    unsigned char m_SBuf[DBUF_SIZE];
+    unsigned char m_RBuf[DBUF_SIZE];
+    //данные о клиенте
+    SessionState m_ses_state;
+    string m_client_name;
+    list<srvProbe> m_ProbeList; //эталон-лист запущеных зондов
+    //////////////////////////////////////
+    //общие весчи
+    static long long current_ses_id;
+    static std::string m_srv_name;
+    static list<SessionState> Archive;
+    static pthread_mutex_t archive_mutex; //мютекс на доступ к архиву. 
+    static short archive_flag;
+    sock m_socket;
+    //указазаетли для отправки
+    intro_s* pintro;
+    sesstart_s* psesstart;
+    disconnect_s* pdisconnect;
+    getclstate_s* pgetclstate;
+    setprobe_s* psetprobe;
+    dataack_s* pdataack;
+    //указатели для приема
+    login_s *plogin;
+    clientstate_s *pclientstate ;
+    proberesult_s * pproberesult;
+    eventlog_s *  peventlog;
+    cldisconnect_s * pclientdisconnect;
+  // каждая секретутка подрубается к бд по-своему
+//  void m_DBconnection;
+    /*   * поток с авторизацией и приемкой данных   */
+    void main_thread ( );
+  /*   * поток отправляющий агенту управляющие данные
+     * -номера последовательностей всего что можно   */
+    void ctl_thread ( );
+    void initAttributes ( ) ;
+    int PutState(); //складывает в архив состояние клиента при обрыве связи
+    long long SearchState(); //ищет состояние клиента с принятым ID и забирает его из архива. возвращает ID если найдено или 0 если данных о сессии нет
+    int SendBuf();
+    int RecvBuf();
+    int CheckProbes(); //проверяет список пров и по необходимости приказывает создать/убить зонды на клиенте
+public:
+  static void * FstThread (void * pthis );
+  static void * SecThread (void * pthis );
+  // Constructors/Destructors
+  /*   * Empty Constructor   */
+  secretarsha_Lena (sock soket );
+  /*   * Empty Destructor   */
+  ~secretarsha_Lena ( );
+  /*   авторизует клиента и возвращает успешность */
+  int Auth ( );
+  /*  принммает данные от клиента и обрабатывает их  */
+  int StartContact ( );
+  /**   * Set the value of m_logfile   */
+  void setLogfile (const string& new_var )   {      m_logfile = new_var;  }
+  /*   * Get the value of m_logfile
+   * @return the value of m_logfile   */
+  string getLogfile ( )   {    return m_logfile;  }
+  /*  * Get the value of m_state_seq   */
+  unsigned int getState_seq ( )   {    return m_ses_state.m_state_seq;  }
+  /*   * Get the value of m_client_name   */
+  string getClient_name ( )   {    return m_client_name;  }
+    /**   * задает список проб классу.
+     * в name передавать параметр по которому определяется принадлежность зондов агенту на этой линии связи.  */
+  int setProbeList (string name );
+  /*   * Set the value of m_ProbeList   */
+  void setProbeList (const list<srvProbe>& new_var )   {      m_ProbeList = new_var;  }
+  /*   * Get the value of m_ProbeList */
+  list<srvProbe>& getProbeList ( )   {    return m_ProbeList;  }
+  /*   * Set the value of m_socket  */
+  void setSocket (const sock& new_var )   {      m_socket = new_var;  }
+  /* * Get the value of m_socket */
+  sock getSocket ( )   {    return m_socket;  }
+  short Status(){return m_die_status;}
+};
+
+#endif // SECRETARSHA_LENA_H
+
+session_state.h
+
+/***************************************************************************
+ *   Copyright (C) 2009 by IERO   *
+ *   iero@localhost   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+#include <string>
+#include <vector>
+#include "../../agent_nix/src/datatypes.h"
+#include "srvProbe.h"
+using namespace std;
+/**   структура в которой хранятся данные о состоянии прерванной сессии   */
+class  SessionState{
+  public:
+    SessionState();
+    ~SessionState();
+    long long m_sessionId; //ID сессии. одинаков с клиентом
+    unsigned long m_state_seq; //номер запроса получения статуса
+    unsigned long m_cl_state_seq; //номер возвращенного клиентом запроса получения статуса
+    unsigned long next_event; //номер ожидаемого события
+    unsigned long next_result;//номер ожидаемого результата
+    unsigned long last_event; //номер последнего случившегося события
+    unsigned long probe_count;
+    unsigned long active_probe_count;
+    vector<ProbeState> ProbeList; //лист запущеных зондов
+    timestamp_t cl_time;
+    timestamp_t cl_comm_time;
+    timestamp_t cl_state_time;
+};
+srvNetEvent.h
+
+
+#ifndef SRVNETEVENT_H
+#define SRVNETEVENT_H
+
+#include <string>
+#include "../../agent_nix/src/datatypes.h"
+/**
+  * class srvNetEvent
+  * описание одного сетевого события
+  * 
+  */
+
+class srvNetEvent
+{
+public:
+  // Constructors/Destructors
+  //  
+  /* Constructor   */
+  srvNetEvent (addr_t address, timestamp_t time,idprobe_t,unsigned long, NetEventType evtype, NetEventClass evclass );
+  /* Empty Destructor   */
+  ~srvNetEvent ( );
+  //          - IP адрес источника события;
+  addr_t m_Adress;
+  //          - относительное время фиксации события;
+  timestamp_t m_Time;
+  idprobe_t m_IdProbe;
+  unsigned long m_cycle_num;
+  //          - вид события - errcode или ICMP Code; 
+  NetEventType m_EventType;
+  //   - класс события:
+  NetEventClass m_EvClass;
+};
+
+#endif // SRVNETEVENT_H
+
+srvPostString.h
+
+
+#ifndef SRVPOSTSTRING_H
+#define SRVPOSTSTRING_H
+
+#include <string>
+#include <vector>
+#include "../../agent_nix/src/datatypes.h"
+using namespace std;
+/**
+  * class srvPostString
+  * результат теста в виде понятном серверу.
+  */
+
+class srvPostString
+{
+  public:
+ /* Constructor   */
+    //все параметры результатов должны быть в сетевом виде.
+    srvPostString (idprobe_t id_probe,unsigned long cyclenum,unsigned long count,  unsigned long seq,  timestamp_t time,unsigned long * results);
+  /*   * Empty Destructor   */
+   ~srvPostString ( );
+  // Public attributes
+   idprobe_t m_idprobe;
+   unsigned long  m_CycleNum;
+   unsigned long  m_Count;
+   unsigned long seq_num;
+   timeval m_Time;
+   vector<node_result_t> m_Result;
+};
+
+#endif // SRVPOSTSTRING_H
+
+srvProbe.h
+
+
+#ifndef SRVPROBE_H
+#define SRVPROBE_H
+
+#include <string>
+#include "../../agent_nix/src/datatypes.h"
+/**
+  * class srvProbe
+  * класс для теста одного узла и отсыла данных об нем.
+  */
+
+class srvProbe
+{
+private:
+  idprobe_t m_IdProbe;
+    // время ожидания между тестами в секундах.
+  long m_Interval;
+  // кол-во пингов в тесте
+  long m_Count; //или кол-во пройденых циклов - по смыслу
+  // адрес проверяемого данным зондом.
+  addr_t m_Target;
+  // размер пинга
+  short m_Size;
+public:
+    /*   * Empty Constructor   */
+  srvProbe (idprobe_t id,long interval, long count,addr_t target, short size );
+    /*   * Empty Destructor   */
+    ~srvProbe ( );
+  /*   * Set the value of кол-во пингов в тесте   */
+  void setCount ( long new_var )   {      m_Count = new_var;  }
+  /*   Get the value of кол-во пингов в тесте  */
+  long getCount ( )   {    return m_Count;  }
+  /*   * Set the value of время ожидания между тестами в секундах.*/
+  void setInterval ( long new_var )   {      m_Interval = new_var;  }
+  /*   * Get the value of время ожидания между тестами в секундах.   */
+  long getInterval ( )   {    return m_Interval;  }
+  /*   * Set the value of  адрес проверяемого данным зондом.*/
+  void setTarget ( addr_t new_var )   {      m_Target = new_var;  }
+  /*   * Get the value of m_Target    */
+  addr_t getTarget ( )   {    return m_Target;  }
+  /*   * Set the value of  размер пинга   */
+  void setSize ( short new_var )   {      m_Size = new_var;  }
+  /*   * Get the value of размер пинга   */
+  short getSize ( )   {    return m_Size;  }
+  /*   * Set the value of idprobe   */
+  void setIdProbe ( idprobe_t new_var )   {      m_IdProbe = new_var;  }
+  /*   * Get the value of m_IdProbe    */
+  idprobe_t getIdProbe ( )   {    return m_IdProbe;  }
+};
+
+class ProbeState
+{
+  private:
+    idprobe_t m_IdProbe;
+    // время ожидания между тестами в секундах.
+    long m_cycle_num;
+  // статус
+    probe_status_t m_state;
+  public:
+    ProbeState();
+    ProbeState(idprobe_t id, long num,probe_status_t stat );
+};
+#endif // SRVPROBE_H
+
